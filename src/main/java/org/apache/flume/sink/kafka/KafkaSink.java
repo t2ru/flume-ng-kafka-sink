@@ -19,7 +19,7 @@
 package org.apache.flume.sink.kafka;
 
 import kafka.javaapi.producer.Producer;
-import kafka.javaapi.producer.ProducerData;
+import kafka.producer.KeyedMessage;
 
 import org.apache.flume.Channel;
 import org.apache.flume.Context;
@@ -63,7 +63,7 @@ public class KafkaSink extends AbstractSink implements Configurable {
 				return Status.READY;
 
 			}
-			producer.send(new ProducerData<String, String>(topic, new String(event
+			producer.send(new KeyedMessage<String, String>(topic, new String(event
 					.getBody())));
 			log.trace("Message: {}", event.getBody());
 			tx.commit();
