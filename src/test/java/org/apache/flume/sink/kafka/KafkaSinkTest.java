@@ -43,68 +43,68 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class KafkaSinkTest {
-	private static final Logger log = LoggerFactory.getLogger(KafkaSinkTest.class);
+    private static final Logger log = LoggerFactory.getLogger(KafkaSinkTest.class);
 
-	private KafkaSink mockKafkaSink;
-	private Producer<String, String> mockProducer;
-	private Channel mockChannel;
-	private Event mockEvent;
-	private Transaction mockTx;
+    private KafkaSink mockKafkaSink;
+    private Producer<String, String> mockProducer;
+    private Channel mockChannel;
+    private Event mockEvent;
+    private Transaction mockTx;
 
-	@SuppressWarnings("unchecked")
-	@Before
-	public void setup() throws Exception {
-		mockProducer = mock(Producer.class);
-		mockChannel = mock(Channel.class);
-		mockEvent = mock(Event.class);
-		mockTx = mock(Transaction.class);
-		mockKafkaSink = new KafkaSink();
-		
-		Field field = AbstractSink.class.getDeclaredField("channel");
-		field.setAccessible(true);
-		field.set(mockKafkaSink, mockChannel);
+    @SuppressWarnings("unchecked")
+    @Before
+    public void setup() throws Exception {
+        mockProducer = mock(Producer.class);
+        mockChannel = mock(Channel.class);
+        mockEvent = mock(Event.class);
+        mockTx = mock(Transaction.class);
+        mockKafkaSink = new KafkaSink();
 
-		field = KafkaSink.class.getDeclaredField("topic");
-		field.setAccessible(true);
-		field.set(mockKafkaSink, "test");
+        Field field = AbstractSink.class.getDeclaredField("channel");
+        field.setAccessible(true);
+        field.set(mockKafkaSink, mockChannel);
 
-		field = KafkaSink.class.getDeclaredField("producer");
-		field.setAccessible(true);
-		field.set(mockKafkaSink, mockProducer);
-		
-		when(mockChannel.take()).thenReturn(mockEvent);
-		when(mockChannel.getTransaction()).thenReturn(mockTx);
-	}
+        field = KafkaSink.class.getDeclaredField("topic");
+        field.setAccessible(true);
+        field.set(mockKafkaSink, "test");
 
-	@After
-	public void tearDown() throws Exception {
-	}
+        field = KafkaSink.class.getDeclaredField("producer");
+        field.setAccessible(true);
+        field.set(mockKafkaSink, mockProducer);
 
-	@SuppressWarnings("unchecked")
-	@Test
-	public void testProcessStatusReady() throws EventDeliveryException, SecurityException, NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
-		when(mockEvent.getBody()).thenReturn("frank".getBytes());
-		Status status = mockKafkaSink.process();
-		verify(mockChannel, times(1)).getTransaction();
-		verify(mockChannel, times(1)).take();
-		verify(mockProducer, times(1)).send((KeyedMessage<String, String>) any());
-		verify(mockTx, times(1)).commit();
-		verify(mockTx, times(0)).rollback();
-		verify(mockTx, times(1)).close();
-		assertEquals(Status.READY, status);
-	}
+        when(mockChannel.take()).thenReturn(mockEvent);
+        when(mockChannel.getTransaction()).thenReturn(mockTx);
+    }
 
-	@SuppressWarnings("unchecked")
-	@Test
-	public void testProcessStatusBackoff() throws EventDeliveryException, SecurityException, NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
-		when(mockEvent.getBody()).thenThrow(new RuntimeException());
-		Status status = mockKafkaSink.process();
-		verify(mockChannel, times(1)).getTransaction();
-		verify(mockChannel, times(1)).take();
-		verify(mockProducer, times(0)).send((KeyedMessage<String, String>) any());
-		verify(mockTx, times(0)).commit();
-		verify(mockTx, times(1)).rollback();
-		verify(mockTx, times(1)).close();
-		assertEquals(Status.BACKOFF, status);
-	}
+    @After
+    public void tearDown() throws Exception {
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testProcessStatusReady() throws EventDeliveryException, SecurityException, NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
+        when(mockEvent.getBody()).thenReturn("frank".getBytes());
+        Status status = mockKafkaSink.process();
+        verify(mockChannel, times(1)).getTransaction();
+        verify(mockChannel, times(1)).take();
+        verify(mockProducer, times(1)).send((KeyedMessage<String, String>) any());
+        verify(mockTx, times(1)).commit();
+        verify(mockTx, times(0)).rollback();
+        verify(mockTx, times(1)).close();
+        assertEquals(Status.READY, status);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testProcessStatusBackoff() throws EventDeliveryException, SecurityException, NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
+        when(mockEvent.getBody()).thenThrow(new RuntimeException());
+        Status status = mockKafkaSink.process();
+        verify(mockChannel, times(1)).getTransaction();
+        verify(mockChannel, times(1)).take();
+        verify(mockProducer, times(0)).send((KeyedMessage<String, String>) any());
+        verify(mockTx, times(0)).commit();
+        verify(mockTx, times(1)).rollback();
+        verify(mockTx, times(1)).close();
+        assertEquals(Status.BACKOFF, status);
+    }
 }

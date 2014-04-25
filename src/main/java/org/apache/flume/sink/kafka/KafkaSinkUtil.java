@@ -30,41 +30,23 @@ import org.slf4j.LoggerFactory;
 
 
 public class KafkaSinkUtil {
-	private static final Logger log = LoggerFactory.getLogger(KafkaSinkUtil.class);
+    private static final Logger log = LoggerFactory.getLogger(KafkaSinkUtil.class);
 
-	public static Properties getKafkaConfigProperties(Context context) {
-		log.info("context={}",context.toString());
-		Properties props = new Properties();
-		Map<String, String> contextMap = context.getParameters();
-		for(String key : contextMap.keySet()) {
-			if (!key.equals("type") && !key.equals("channel")) {
-				props.setProperty(key, context.getString(key));
-				log.info("key={},value={}",key,context.getString(key));
-			}
-		}
-		return props;
-	}
-	public static Producer<byte[], byte[]> getProducer(Context context) {
-		Producer<byte[], byte[]> producer;
-		producer = new Producer<byte[], byte[]>(new ProducerConfig(getKafkaConfigProperties(context)));
-		return producer;
-	}
+    public static Properties getKafkaConfigProperties(Context context) {
+        log.info("context={}",context.toString());
+        Properties props = new Properties();
+        Map<String, String> contextMap = context.getParameters();
+        for(String key : contextMap.keySet()) {
+            if (!key.equals("type") && !key.equals("channel")) {
+                props.setProperty(key, context.getString(key));
+                log.info("key={},value={}",key,context.getString(key));
+            }
+        }
+        return props;
+    }
+    public static Producer<byte[], byte[]> getProducer(Context context) {
+        Producer<byte[], byte[]> producer;
+        producer = new Producer<byte[], byte[]>(new ProducerConfig(getKafkaConfigProperties(context)));
+        return producer;
+    }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
