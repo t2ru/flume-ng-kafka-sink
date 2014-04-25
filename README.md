@@ -10,9 +10,7 @@ Configuration of Kafka Sink
     agent_log.sinks.kafka.channel = all_channel
     agent_log.sinks.kafka.metadata.broker.list = 127.0.0.1:9092
     agent_log.sinks.kafka.topic = all
-    agent_log.sinks.kafka.batchsize = 200
-    agent_log.sinks.kafka.producer.type = async
-    agent_log.sinks.kafka.serializer.class = kafka.serializer.StringEncoder
+    agent_log.sinks.kafka.producer.type = sync
 
 Speical Thanks
 ---------

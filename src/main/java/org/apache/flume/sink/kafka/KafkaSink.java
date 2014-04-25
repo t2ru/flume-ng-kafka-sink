@@ -50,7 +50,7 @@ import org.slf4j.LoggerFactory;
 public class KafkaSink extends AbstractSink implements Configurable {
 	private static final Logger log = LoggerFactory.getLogger(KafkaSink.class);
 	private String topic;
-	private Producer<String, String> producer;
+	private Producer<byte[], byte[]> producer;
 
 	public Status process() throws EventDeliveryException {
 		Channel channel = getChannel();
@@ -63,8 +63,7 @@ public class KafkaSink extends AbstractSink implements Configurable {
 				return Status.READY;
 
 			}
-			producer.send(new KeyedMessage<String, String>(topic, new String(event
-					.getBody())));
+			producer.send(new KeyedMessage<byte[], byte[]>(topic, event.getBody()));
 			log.trace("Message: {}", event.getBody());
 			tx.commit();
 			return Status.READY;
