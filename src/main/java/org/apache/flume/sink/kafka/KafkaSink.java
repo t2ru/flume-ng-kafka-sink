@@ -18,6 +18,9 @@
  *******************************************************************************/
 package org.apache.flume.sink.kafka;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import kafka.javaapi.producer.Producer;
 import kafka.producer.KeyedMessage;
 
@@ -46,22 +49,27 @@ import org.slf4j.LoggerFactory;
  */
 public class KafkaSink extends AbstractSink implements Configurable {
     private static final Logger log = LoggerFactory.getLogger(KafkaSink.class);
+
     private String topic;
+    private int batchSize;
     private Producer<byte[], byte[]> producer;
 
     public Status process() throws EventDeliveryException {
         Channel channel = getChannel();
         Transaction tx = channel.getTransaction();
+        tx.begin();
         try {
-            tx.begin();
-            Event event = channel.take();
-            if (event == null) {
-                tx.commit();
-                return Status.READY;
-
+            List<KeyedMessage<byte[], byte[]>> messages = new LinkedList<KeyedMessage<byte[], byte[]>>();
+            for (int i = 0; i < batchSize; i++) {
+                Event event = channel.take();
+                if (event == null) break;
+                messages.add(new KeyedMessage<byte[], byte[]>(topic, event.getBody()));
             }
-            producer.send(new KeyedMessage<byte[], byte[]>(topic, event.getBody()));
-            log.trace("Message: {}", event.getBody());
+            if (messages.isEmpty()) {
+                tx.rollback();
+                return Status.BACKOFF;
+            }
+            producer.send(messages);
             tx.commit();
             return Status.READY;
         } catch (Exception e) {
@@ -80,6 +88,7 @@ public class KafkaSink extends AbstractSink implements Configurable {
 
     public void configure(Context context) {
         topic = context.getString("topic");
+        batchSize = context.getInteger("batchSize", 10);
         if (topic == null) {
             throw new ConfigurationException("Kafka topic must be specified.");
         }

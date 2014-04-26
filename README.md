@@ -11,6 +11,7 @@ Configuration of Kafka Sink
     agent_log.sinks.kafka.metadata.broker.list = 127.0.0.1:9092
     agent_log.sinks.kafka.topic = all
     agent_log.sinks.kafka.producer.type = sync
+    agent_log.sinks.kafka.batchSize = 20
 
 Speical Thanks
 ---------
