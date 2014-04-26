@@ -35,6 +35,7 @@ public class KafkaSinkUtil {
     public static Properties getKafkaConfigProperties(Context context) {
         log.info("context={}",context.toString());
         Properties props = new Properties();
+        props.setProperty("key.serializer.class", "kafka.serializer.StringEncoder");
         Map<String, String> contextMap = context.getParameters();
         for(String key : contextMap.keySet()) {
             if (!key.equals("type") && !key.equals("channel")) {
@@ -44,9 +45,9 @@ public class KafkaSinkUtil {
         }
         return props;
     }
-    public static Producer<byte[], byte[]> getProducer(Context context) {
-        Producer<byte[], byte[]> producer;
-        producer = new Producer<byte[], byte[]>(new ProducerConfig(getKafkaConfigProperties(context)));
+    public static Producer<String, byte[]> getProducer(Context context) {
+        Producer<String, byte[]> producer;
+        producer = new Producer<String, byte[]>(new ProducerConfig(getKafkaConfigProperties(context)));
         return producer;
     }
 }

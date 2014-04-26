@@ -12,6 +12,7 @@ Configuration of Kafka Sink
     agent_log.sinks.kafka.topic = all
     agent_log.sinks.kafka.producer.type = sync
     agent_log.sinks.kafka.batchSize = 20
+    agent_log.sinks.kafka.keyField = kafka_key
 
 Speical Thanks
 ---------

@@ -52,18 +52,21 @@ public class KafkaSink extends AbstractSink implements Configurable {
 
     private String topic;
     private int batchSize;
-    private Producer<byte[], byte[]> producer;
+    private String keyField;
+    private Producer<String, byte[]> producer;
 
     public Status process() throws EventDeliveryException {
         Channel channel = getChannel();
         Transaction tx = channel.getTransaction();
         tx.begin();
         try {
-            List<KeyedMessage<byte[], byte[]>> messages = new LinkedList<KeyedMessage<byte[], byte[]>>();
+            List<KeyedMessage<String, byte[]>> messages = new LinkedList<KeyedMessage<String, byte[]>>();
             for (int i = 0; i < batchSize; i++) {
                 Event event = channel.take();
+                String key = null;
                 if (event == null) break;
-                messages.add(new KeyedMessage<byte[], byte[]>(topic, event.getBody()));
+                key = keyField != null ? event.getHeaders().get(keyField) : null;
+                messages.add(new KeyedMessage<String, byte[]>(topic, key, event.getBody()));
             }
             if (messages.isEmpty()) {
                 tx.rollback();
@@ -72,7 +75,7 @@ public class KafkaSink extends AbstractSink implements Configurable {
             producer.send(messages);
             tx.commit();
             return Status.READY;
-        } catch (Exception e) {
+        } catch (Throwable e) {
             try {
                 tx.rollback();
                 return Status.BACKOFF;
@@ -88,6 +91,7 @@ public class KafkaSink extends AbstractSink implements Configurable {
 
     public void configure(Context context) {
         topic = context.getString("topic");
+        keyField = context.getString("keyField", null);
         batchSize = context.getInteger("batchSize", 10);
         if (topic == null) {
             throw new ConfigurationException("Kafka topic must be specified.");
